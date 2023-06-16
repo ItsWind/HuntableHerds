@@ -2,6 +2,7 @@
 using TaleWorlds.CampaignSystem.Encounters;
 using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.CampaignSystem.ViewModelCollection.Map.MapNotificationTypes;
+using TaleWorlds.Core;
 using TaleWorlds.Library;
 
 namespace HuntableHerds.Models {
@@ -25,9 +26,16 @@ namespace HuntableHerds.Models {
 
         private void OpenHuntingMessageBox() {
             string sceneName = PlayerEncounter.GetBattleSceneForMapPatch(Campaign.Current.MapSceneWrapper.GetMapPatchAtPosition(MobileParty.MainParty.Position2D));
+            bool isRandomScene = true;
+            int numScenes = HerdBuildData.CurrentHerdBuildData.SceneIds.Count;
+            if (numScenes > 0) {
+                isRandomScene = false;
+                int randomIndex = MBRandom.RandomInt(0, numScenes);
+                sceneName = HerdBuildData.CurrentHerdBuildData.SceneIds[randomIndex];
+            }
 
             InquiryData inquiry = new InquiryData("Herd Spotted", HerdBuildData.CurrentHerdBuildData.Message, true, true, "Yes", "No", () => {
-                CustomMissions.StartHuntingMission(sceneName);
+                CustomMissions.StartHuntingMission(sceneName, isRandomScene);
             }, null);
 
             InformationManager.ShowInquiry(inquiry, true, true);

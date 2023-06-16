@@ -9,7 +9,7 @@ namespace HuntableHerds.AgentComponents {
 
         public override void HuntableAITick(float dt) {
             if (Agent.CanSeeOtherAgent(Agent.Main, HerdBuildData.CurrentHerdBuildData.SightRange))
-                GoToPositionAwayFromOtherAgent(Agent.Main);
+                GoToPositionOppositeFromOtherAgent(Agent.Main);
         }
     }
 }

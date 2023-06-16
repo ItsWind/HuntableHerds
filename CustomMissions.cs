@@ -9,7 +9,7 @@ using TaleWorlds.MountAndBlade.View;
 
 namespace HuntableHerds {
     public static class CustomMissions {
-        public static Mission StartHuntingMission(string sceneName) {
+        public static Mission StartHuntingMission(string sceneName, bool isRandomScene) {
             return MissionState.OpenNew(sceneName,
                 SandBoxMissions.CreateSandBoxMissionInitializerRecord(sceneName, "", false, DecalAtlasGroup.Battle),
                 (Mission mission) => new MissionBehavior[] {
@@ -33,7 +33,7 @@ namespace HuntableHerds {
                     ViewCreator.CreateMissionSingleplayerEscapeMenu(false),
                     ViewCreator.CreateOptionsUIHandler(),
                     ViewCreator.CreatePhotoModeView(),
-                    new HerdMissionLogic()
+                    new HerdMissionLogic(isRandomScene)
                 });
         }
     }

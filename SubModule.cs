@@ -10,7 +10,9 @@ namespace HuntableHerds {
     public class SubModule : MBSubModuleBase {
         protected override void OnSubModuleLoad() {
             new Harmony("HuntableHerds").PatchAll();
+        }
 
+        protected override void OnBeforeInitialModuleScreenSetAsRoot() {
             HerdBuildData.BuildAll();
         }
 

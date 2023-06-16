@@ -15,12 +15,14 @@ namespace HuntableHerds.AgentComponents {
         }
 
         public override void HuntableAITick(float dt) {
+            Agent mainAgent = Agent.Main;
+
             if (_attackTimer > 0f)
                 _attackTimer -= dt;
             else if (_attackTimer < 0f)
                 _attackTimer = 0f;
 
-            if (Agent.CanSeeOtherAgent(Agent.Main, HerdBuildData.CurrentHerdBuildData.SightRange)) {
+            if (Agent.CanSeeOtherAgent(mainAgent, HerdBuildData.CurrentHerdBuildData.SightRange)) {
                 _aggroTimer = 15f;
             }
             else {
@@ -29,29 +31,33 @@ namespace HuntableHerds.AgentComponents {
             }
 
             if (_aggroTimer > 0f) {
-                TickIsAggroed(dt);
+                TickIsAggroed(dt, mainAgent);
             }
             else if (_aggroTimer < 0f) {
                 _aggroTimer = 0f;
             }
         }
 
-        private void TickIsAggroed(float dt) {
+        private void TickIsAggroed(float dt, Agent mainAgent) {
             if (_attackTimer <= 1f)
-                SetMoveToPosition(Agent.Main.Position.ToWorldPosition());
+                SetMoveToPosition(mainAgent.Position.ToWorldPosition(), false, Agent.AIScriptedFrameFlags.NeverSlowDown);
 
-            if (_attackTimer == 0f && GetWithinAttackRangeOfPlayer() && Agent.CanSeeOtherAgent(Agent.Main))
-                AttackPlayer();
+            if (_attackTimer == 0f && GetWithinAttackRangeOfPlayer())
+                AttackPlayer(mainAgent);
         }
 
-        private void AttackPlayer() {
-            _attackTimer = 3f;
-            SetMoveToPosition(Agent.Position.ToWorldPosition());
+        private void AttackPlayer(Agent mainAgent) {
+            _attackTimer = 5f;
+            Vec3 nextPosition = GetTrueRandomPositionAroundOtherAgent(mainAgent, 10f, 50f, true);
+            SetMoveToPosition(nextPosition.ToWorldPosition(), false, Agent.AIScriptedFrameFlags.NeverSlowDown);
+
+            if (!Agent.CanSeeOtherAgent(Agent.Main, 0.3f))
+                return;
 
             Agent attacker = Agent;
             Agent victim = Agent.Main.HasMount ? Agent.Main.MountAgent : Agent.Main;
             // lazy block checking
-            bool isBlocked = !Agent.Main.HasMount && Input.IsKeyDown(InputKey.RightMouseButton) && victim.CanSeeOtherAgent(attacker);
+            bool isBlocked = !Agent.Main.HasMount && Input.IsKeyDown(InputKey.RightMouseButton) && victim.CanSeeOtherAgent(attacker, 1.25f);
             int blockedDamageToPlayer = (int)Math.Round(HerdBuildData.CurrentHerdBuildData.DamageToPlayer * (isBlocked ? 0.25f : 1f));
 
             Blow blow = new Blow(attacker.Index);

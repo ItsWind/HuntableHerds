@@ -25,7 +25,7 @@ namespace HuntableHerds.AgentComponents {
             if (!HerdBuildData.CurrentHerdBuildData.FleeOnAttacked || affectorAgent == null || affectorAgent == Agent)
                 return;
 
-            GoToPositionAwayFromOtherAgent(affectorAgent);
+            GoToPositionOppositeFromOtherAgent(affectorAgent);
         }
 
         public ItemRoster GetItemDrops() {
@@ -40,10 +40,18 @@ namespace HuntableHerds.AgentComponents {
             this.Agent.SetScriptedPosition(ref position, addHumanLikeDelay, flags);
         }
 
-        public void GoToPositionAwayFromOtherAgent(Agent otherAgent) {
+        public void GoToPositionOppositeFromOtherAgent(Agent otherAgent) {
             Vec3 differenceWithMult = (Agent.Position - otherAgent.Position) * 2;
             Vec3 gotoPosition = Agent.Position + differenceWithMult;
             SetMoveToPosition(gotoPosition.ToWorldPosition());
+        }
+
+        public Vec3 GetTrueRandomPositionAroundOtherAgent(Agent otherAgent, float minDistance, float maxDistance, bool nearFirst = false) {
+            Vec3 center = otherAgent.Position;
+            Vec3 randomPos = Agent.Mission.GetRandomPositionAroundPoint(center, minDistance, maxDistance, nearFirst);
+            while (randomPos == center)
+                randomPos = Agent.Mission.GetRandomPositionAroundPoint(center, minDistance, maxDistance, nearFirst);
+            return randomPos;
         }
     }
 }

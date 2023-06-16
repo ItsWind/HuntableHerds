@@ -19,11 +19,12 @@ namespace HuntableHerds.Models {
         public float SightRange;
         public bool FleeOnAttacked;
         public List<(string, int)> ItemDrops;
+        public List<string> SceneIds;
 
         private static List<HerdBuildData> allHuntableAgentBuildDatas = new();
         public static HerdBuildData CurrentHerdBuildData;
 
-        public HerdBuildData(string notifMessage, string message, string spawnId, int totalAmountInHerd, bool isPassive, float startingHealth, float hitboxRange, int damageToPlayer, float sightRange, bool fleeOnAttacked, List<(string, int)> itemDropsIdAndCount) {
+        public HerdBuildData(string notifMessage, string message, string spawnId, int totalAmountInHerd, bool isPassive, float startingHealth, float hitboxRange, int damageToPlayer, float sightRange, bool fleeOnAttacked, List<(string, int)> itemDropsIdAndCount, List<string> sceneIds) {
             NotifMessage = notifMessage;
             Message = message;
             SpawnId = spawnId;
@@ -35,6 +36,7 @@ namespace HuntableHerds.Models {
             SightRange = sightRange;
             FleeOnAttacked = fleeOnAttacked;
             ItemDrops = itemDropsIdAndCount;
+            SceneIds = sceneIds;
 
             CurrentHerdBuildData = this;
         }
@@ -75,12 +77,20 @@ namespace HuntableHerds.Models {
                 int damageToPlayer = (int)element.Element("damageToPlayer");
                 float sightRange = (float)element.Element("sightRange");
                 bool fleeOnAttacked = element.Element("fleeOnAttacked").Value == "true" ? true : false;
-                List<(string, int)> itemDrops = new();
-                foreach (XElement itemDrop in element.Element("ItemDrops").Descendants("ItemDrop")) {
-                    itemDrops.Add((itemDrop.Element("itemId").Value, (int)itemDrop.Element("amount")));
-                }
 
-                HerdBuildData buildData = new HerdBuildData(notifMessage, message, spawnId, totalAmountInHerd, isPassive, startingHealth, hitboxRange, damageToPlayer, sightRange, fleeOnAttacked, itemDrops);
+                List<(string, int)> itemDrops = new();
+                XElement? itemDropsElement = element.Element("ItemDrops");
+                if (itemDropsElement != null)
+                    foreach (XElement itemDrop in itemDropsElement.Descendants("ItemDrop"))
+                        itemDrops.Add((itemDrop.Element("itemId").Value, (int)itemDrop.Element("amount")));
+
+                List<string> sceneIds = new();
+                XElement? sceneIdsElement = element.Element("SceneIds");
+                if (sceneIdsElement != null)
+                    foreach (XElement sceneId in sceneIdsElement.Descendants("sceneId"))
+                        sceneIds.Add(sceneId.Value);
+
+                HerdBuildData buildData = new HerdBuildData(notifMessage, message, spawnId, totalAmountInHerd, isPassive, startingHealth, hitboxRange, damageToPlayer, sightRange, fleeOnAttacked, itemDrops, sceneIds);
                 allHuntableAgentBuildDatas.Add(buildData);
             }
         }

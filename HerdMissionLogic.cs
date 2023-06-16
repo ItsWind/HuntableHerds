@@ -11,12 +11,33 @@ using TaleWorlds.CampaignSystem.Inventory;
 using TaleWorlds.InputSystem;
 using HuntableHerds.AgentComponents;
 using HuntableHerds.Models;
+using TaleWorlds.Engine;
 
 namespace HuntableHerds {
     public class HerdMissionLogic : MissionLogic {
         private Dictionary<Agent, HerdAgentComponent> animals = new();
 
+        private bool isRandomScene = true;
+        private List<Vec3> playerSpawnPositions = new();
+        private List<Vec3> animalSpawnPositions = new();
+
+        public HerdMissionLogic(bool isRandomScene) {
+            this.isRandomScene = isRandomScene;
+        }
+
         public override void AfterStart() {
+            if (!isRandomScene) {
+                foreach (GameEntity entity in Mission.Current.Scene.FindEntitiesWithTag("spawnpoint_player")) {
+                    MatrixFrame globalFrame = entity.GetGlobalFrame();
+                    playerSpawnPositions.Add(globalFrame.origin);
+                }
+
+                foreach (GameEntity entity in Mission.Current.Scene.FindEntitiesWithTag("spawnpoint_herdanimal")) {
+                    MatrixFrame globalFrame = entity.GetGlobalFrame();
+                    animalSpawnPositions.Add(globalFrame.origin);
+                }
+            }
+
             SpawnPlayer();
             SubModule.PrintDebugMessage("Press Q nearby slain animals to skin and loot them!");
         }
@@ -31,7 +52,7 @@ namespace HuntableHerds {
             if (animals.Count >= HerdBuildData.CurrentHerdBuildData.TotalAmountInHerd)
                 return;
 
-            Vec3 position = GetTrueRandomPosition(Agent.Main.Position, 20f, 500f);
+            Vec3 position = isRandomScene ? GetTrueRandomPosition(Agent.Main.Position, 20f, 500f) : GetRandomSpawnPosition(animalSpawnPositions);
             SpawnAnimalToHunt(position);
         }
 
@@ -60,9 +81,9 @@ namespace HuntableHerds {
         private Agent SpawnPlayer() {
             MatrixFrame matrixFrame = MatrixFrame.Identity;
             CharacterObject playerCharacter = CharacterObject.PlayerCharacter;
-            Vec3 centerPos = matrixFrame.origin.NormalizedCopy();
-            base.Mission.Scene.GetNavMeshCenterPosition(0, ref centerPos);
-            Vec3 playerSpawnPos = GetTrueRandomPosition(centerPos, 20f, 200f);
+            Vec3 centerPos = matrixFrame.origin;
+            //Mission.Scene.GetNavMeshCenterPosition(0, ref centerPos);
+            Vec3 playerSpawnPos = isRandomScene ? GetTrueRandomPosition(centerPos, 20f, 200f) : GetRandomSpawnPosition(playerSpawnPositions);
             AgentBuildData agentBuildData = new AgentBuildData(playerCharacter).Team(base.Mission.PlayerTeam).InitialPosition(playerSpawnPos);
 
             Vec2 vec = matrixFrame.rotation.f.AsVec2;
@@ -108,6 +129,15 @@ namespace HuntableHerds {
             while (randomPos == center)
                 randomPos = base.Mission.GetRandomPositionAroundPoint(center, minDistance, maxDistance, nearFirst);
             return randomPos;
+        }
+
+        private Vec3 GetRandomSpawnPosition(List<Vec3> spawnPositions) {
+            if (spawnPositions.Count == 0) {
+                SubModule.PrintDebugMessage("no spawn points found. check hunting_herds.xml");
+                return new Vec3();
+            }
+            int randomIndex = MBRandom.RandomInt(0, spawnPositions.Count);
+            return spawnPositions[randomIndex];
         }
     }
 }
