@@ -42,44 +42,42 @@ namespace HuntableHerds.AgentComponents {
             if (_attackTimer <= 1f)
                 SetMoveToPosition(mainAgent.Position.ToWorldPosition(), false, Agent.AIScriptedFrameFlags.NeverSlowDown);
 
-            if (_attackTimer == 0f && GetWithinAttackRangeOfPlayer(mainAgent))
-                AttackPlayer(mainAgent);
+            Agent victim = mainAgent.HasMount ? mainAgent.MountAgent : mainAgent;
+            if (_attackTimer == 0f && GetWithinAttackRangeOfAgent(victim))
+                AttackAgent(victim);
         }
 
-        private void AttackPlayer(Agent mainAgent) {
+        private void AttackAgent(Agent otherAgent) {
             _attackTimer = 5f;
-            Vec3 nextPosition = Agent.Mission.GetTrueRandomPositionAroundPoint(mainAgent.Position, 10f, 50f, true);
+            Vec3 nextPosition = Agent.Mission.GetTrueRandomPositionAroundPoint(otherAgent.Position, 10f, 50f, true);
             SetMoveToPosition(nextPosition.ToWorldPosition(), false, Agent.AIScriptedFrameFlags.NeverSlowDown);
 
-            if (!Agent.CanSeeOtherAgent(mainAgent, 0.3f))
+            if (!Agent.CanSeeOtherAgent(otherAgent, 0.3f))
                 return;
-
-            Agent attacker = Agent;
-            Agent victim = mainAgent.HasMount ? mainAgent.MountAgent : mainAgent;
             // lazy block checking
-            bool isBlocked = !mainAgent.HasMount && Input.IsKeyDown(InputKey.RightMouseButton) && victim.CanSeeOtherAgent(attacker, 1.25f);
+            bool isBlocked = !otherAgent.HasMount && Input.IsKeyDown(InputKey.RightMouseButton) && otherAgent.CanSeeOtherAgent(Agent, 1.25f);
             int blockedDamageToPlayer = (int)Math.Round(HerdBuildData.CurrentHerdBuildData.DamageToPlayer * (isBlocked ? 0.25f : 1f));
 
-            Blow blow = new Blow(attacker.Index);
+            Blow blow = new Blow(Agent.Index);
             blow.DamageType = DamageTypes.Cut;
-            blow.BoneIndex = victim.Monster.HeadLookDirectionBoneIndex;
-            blow.Position = victim.Position;
-            blow.Position.z = blow.Position.z + victim.GetEyeGlobalHeight();
+            blow.BoneIndex = otherAgent.Monster.HeadLookDirectionBoneIndex;
+            blow.Position = otherAgent.Position;
+            blow.Position.z = blow.Position.z + otherAgent.GetEyeGlobalHeight();
             blow.BaseMagnitude = blockedDamageToPlayer;
             blow.WeaponRecord.FillAsMeleeBlow(null, null, -1, -1);
             blow.InflictedDamage = blockedDamageToPlayer;
-            blow.SwingDirection = victim.LookDirection;
+            blow.SwingDirection = otherAgent.LookDirection;
             blow.Direction = blow.SwingDirection;
             blow.DamageCalculated = true;
 
-            sbyte mainHandItemBoneIndex = attacker.Monster.MainHandItemBoneIndex;
-            AttackCollisionData attackCollisionDataForDebugPurpose = AttackCollisionData.GetAttackCollisionDataForDebugPurpose(isBlocked, false, false, true, false, false, false, false, false, false, false, false, isBlocked ? CombatCollisionResult.Blocked : CombatCollisionResult.StrikeAgent, -1, 0, 2, blow.BoneIndex, BoneBodyPartType.Head, mainHandItemBoneIndex, Agent.UsageDirection.AttackLeft, -1, CombatHitResultFlags.NormalHit, 0.5f, 1f, 0f, 0f, 0f, 0f, 0f, 0f, Vec3.Up, blow.Direction, blow.Position, Vec3.Zero, Vec3.Zero, victim.Velocity, Vec3.Up);
+            sbyte mainHandItemBoneIndex = Agent.Monster.MainHandItemBoneIndex;
+            AttackCollisionData attackCollisionDataForDebugPurpose = AttackCollisionData.GetAttackCollisionDataForDebugPurpose(isBlocked, false, false, true, false, false, false, false, false, false, false, false, isBlocked ? CombatCollisionResult.Blocked : CombatCollisionResult.StrikeAgent, -1, 0, 2, blow.BoneIndex, BoneBodyPartType.Head, mainHandItemBoneIndex, Agent.UsageDirection.AttackLeft, -1, CombatHitResultFlags.NormalHit, 0.5f, 1f, 0f, 0f, 0f, 0f, 0f, 0f, Vec3.Up, blow.Direction, blow.Position, Vec3.Zero, Vec3.Zero, otherAgent.Velocity, Vec3.Up);
 
-            victim.RegisterBlow(blow, attackCollisionDataForDebugPurpose);
+            otherAgent.RegisterBlow(blow, attackCollisionDataForDebugPurpose);
         }
 
-        private bool GetWithinAttackRangeOfPlayer(Agent mainAgent) {
-            if (mainAgent.Position.Distance(this.Agent.Position) < HerdBuildData.CurrentHerdBuildData.HitboxRange)
+        private bool GetWithinAttackRangeOfAgent(Agent otherAgent) {
+            if (otherAgent.Position.Distance(Agent.Position) < HerdBuildData.CurrentHerdBuildData.HitboxRange)
                 return true;
             return false;
         }

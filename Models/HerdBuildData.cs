@@ -19,13 +19,13 @@ namespace HuntableHerds.Models {
         public int DamageToPlayer;
         public float SightRange;
         public bool FleeOnAttacked;
-        public List<(string, int)> ItemDrops;
+        public List<(string, (int, int))> ItemDrops;
         public List<string> SceneIds;
 
         private static List<HerdBuildData> allHuntableAgentBuildDatas = new();
         public static HerdBuildData CurrentHerdBuildData;
 
-        public HerdBuildData(string notifMessage, string messageTitle, string message, string spawnId, int totalAmountInHerd, bool isPassive, float startingHealth, float hitboxRange, int damageToPlayer, float sightRange, bool fleeOnAttacked, List<(string, int)> itemDropsIdAndCount, List<string> sceneIds) {
+        public HerdBuildData(string notifMessage, string messageTitle, string message, string spawnId, int totalAmountInHerd, bool isPassive, float startingHealth, float hitboxRange, int damageToPlayer, float sightRange, bool fleeOnAttacked, List<(string, (int, int))> itemDropsIdAndCount, List<string> sceneIds) {
             NotifMessage = notifMessage;
             MessageTitle = messageTitle;
             Message = message;
@@ -45,7 +45,7 @@ namespace HuntableHerds.Models {
 
         public ItemRoster GetCopyOfItemDrops() {
             ItemRoster itemRoster = new ItemRoster();
-            foreach ((string, int) pair in ItemDrops) {
+            foreach ((string, (int, int)) pair in ItemDrops) {
                 ItemObject? item = null;
                 try {
                     item = Game.Current.ObjectManager.GetObject<ItemObject>(pair.Item1);
@@ -55,7 +55,12 @@ namespace HuntableHerds.Models {
                 }
                 if (item == null)
                     continue;
-                itemRoster.AddToCounts(item, pair.Item2);
+
+                int amount = pair.Item2.Item1;
+                if (pair.Item2.Item2 > pair.Item2.Item1)
+                    amount = MBRandom.RandomInt(pair.Item2.Item1, pair.Item2.Item2 + 1);
+
+                itemRoster.AddToCounts(item, amount);
             }
             return itemRoster;
         }
@@ -81,11 +86,17 @@ namespace HuntableHerds.Models {
                 float sightRange = (float)element.Element("sightRange");
                 bool fleeOnAttacked = element.Element("fleeOnAttacked").Value == "true" ? true : false;
 
-                List<(string, int)> itemDrops = new();
+                List<(string, (int, int))> itemDrops = new();
                 XElement? itemDropsElement = element.Element("ItemDrops");
                 if (itemDropsElement != null)
-                    foreach (XElement itemDrop in itemDropsElement.Descendants("ItemDrop"))
-                        itemDrops.Add((itemDrop.Element("itemId").Value, (int)itemDrop.Element("amount")));
+                    foreach (XElement itemDrop in itemDropsElement.Descendants("ItemDrop")) {
+                        int amount = (int)itemDrop.Element("amount");
+                        int maxAmount = amount;
+                        XElement? maxAmountNode = itemDrop.Element("maxAmount");
+                        if (maxAmountNode != null)
+                            maxAmount = (int)maxAmountNode;
+                        itemDrops.Add((itemDrop.Element("itemId").Value, (amount, maxAmount)));
+                    }
 
                 List<string> sceneIds = new();
                 XElement? sceneIdsElement = element.Element("SceneIds");

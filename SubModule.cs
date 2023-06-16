@@ -8,6 +8,8 @@ using TaleWorlds.MountAndBlade;
 
 namespace HuntableHerds {
     public class SubModule : MBSubModuleBase {
+        public static Random Random = new();
+
         protected override void OnSubModuleLoad() {
             new Harmony("HuntableHerds").PatchAll();
         }

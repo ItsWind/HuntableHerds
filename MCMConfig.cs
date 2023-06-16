@@ -23,5 +23,9 @@ namespace HuntableHerds {
         [SettingPropertyFloatingInteger("Daily % Chance of Spotting Herd", 0f, 1f, Order = 2, HintText = "Set the daily percent chance of spotting a herd.", RequireRestart = false)]
         [SettingPropertyGroup("General")]
         public float DailyChanceOfSpottingHerd { get; set; } = 0.3f;
+
+        [SettingPropertyBool("Crouch To Field Dress/Loot", Order = 3, HintText = "Enable/disable needing to crouch in order to loot slain animals.", RequireRestart = false)]
+        [SettingPropertyGroup("General")]
+        public bool CrouchNeededEnabled { get; set; } = true;
     }
 }

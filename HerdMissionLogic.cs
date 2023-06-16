@@ -13,6 +13,7 @@ using HuntableHerds.AgentComponents;
 using HuntableHerds.Models;
 using TaleWorlds.Engine;
 using HuntableHerds.Extensions;
+using MCM.Abstractions.Base.Global;
 
 namespace HuntableHerds {
     public class HerdMissionLogic : MissionLogic {
@@ -69,7 +70,12 @@ namespace HuntableHerds {
             }
 
             if (huntableAgentsLooted.Count == 0) {
-                SubModule.PrintDebugMessage("There are no unlooted animals nearby.");
+                SubModule.PrintDebugMessage("There's nothing to loot nearby...");
+                return;
+            }
+
+            if (GlobalSettings<MCMConfig>.Instance.CrouchNeededEnabled && !Agent.Main.CrouchMode) {
+                SubModule.PrintDebugMessage("You should crouch down (default: Z) to field dress and gather loot.");
                 return;
             }
 
@@ -127,8 +133,9 @@ namespace HuntableHerds {
 
         private Vec3 GetRandomSpawnPosition(List<Vec3> spawnPositions) {
             if (spawnPositions.Count == 0) {
-                SubModule.PrintDebugMessage("no spawn points found. check hunting_herds.xml");
-                return new Vec3();
+                SubModule.PrintDebugMessage("spawn points aren't set up properly in this scene for hunting!!!");
+                Vec3 playerSpawnFallback = Mission.Current.Scene.FindEntityWithName("sp_player").GlobalPosition;
+                return Mission.Current.GetTrueRandomPositionAroundPoint(playerSpawnFallback, 20, 500, false);
             }
             int randomIndex = MBRandom.RandomInt(0, spawnPositions.Count);
             return spawnPositions[randomIndex];
