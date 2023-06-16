@@ -34,7 +34,7 @@ namespace HuntableHerds.Models {
                 sceneName = HerdBuildData.CurrentHerdBuildData.SceneIds[randomIndex];
             }
 
-            InquiryData inquiry = new InquiryData("Herd Spotted", HerdBuildData.CurrentHerdBuildData.Message, true, true, "Yes", "No", () => {
+            InquiryData inquiry = new InquiryData(HerdBuildData.CurrentHerdBuildData.MessageTitle, HerdBuildData.CurrentHerdBuildData.Message, true, true, "Yes", "No", () => {
                 CustomMissions.StartHuntingMission(sceneName, isRandomScene);
             }, null);
 

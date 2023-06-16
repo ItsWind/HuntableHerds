@@ -5,7 +5,7 @@ namespace HuntableHerds.Models {
     public class HerdMapNotification : InformationData {
         public override TextObject TitleText {
             get {
-                return new TextObject("Herd Spotted");
+                return new TextObject(HerdBuildData.CurrentHerdBuildData.MessageTitle);
             }
         }
 

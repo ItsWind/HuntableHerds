@@ -45,13 +45,5 @@ namespace HuntableHerds.AgentComponents {
             Vec3 gotoPosition = Agent.Position + differenceWithMult;
             SetMoveToPosition(gotoPosition.ToWorldPosition());
         }
-
-        public Vec3 GetTrueRandomPositionAroundOtherAgent(Agent otherAgent, float minDistance, float maxDistance, bool nearFirst = false) {
-            Vec3 center = otherAgent.Position;
-            Vec3 randomPos = Agent.Mission.GetRandomPositionAroundPoint(center, minDistance, maxDistance, nearFirst);
-            while (randomPos == center)
-                randomPos = Agent.Mission.GetRandomPositionAroundPoint(center, minDistance, maxDistance, nearFirst);
-            return randomPos;
-        }
     }
 }

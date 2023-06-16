@@ -9,6 +9,7 @@ using TaleWorlds.Core;
 namespace HuntableHerds.Models {
     public class HerdBuildData {
         public string NotifMessage;
+        public string MessageTitle;
         public string Message;
         public string SpawnId;
         public int TotalAmountInHerd;
@@ -24,8 +25,9 @@ namespace HuntableHerds.Models {
         private static List<HerdBuildData> allHuntableAgentBuildDatas = new();
         public static HerdBuildData CurrentHerdBuildData;
 
-        public HerdBuildData(string notifMessage, string message, string spawnId, int totalAmountInHerd, bool isPassive, float startingHealth, float hitboxRange, int damageToPlayer, float sightRange, bool fleeOnAttacked, List<(string, int)> itemDropsIdAndCount, List<string> sceneIds) {
+        public HerdBuildData(string notifMessage, string messageTitle, string message, string spawnId, int totalAmountInHerd, bool isPassive, float startingHealth, float hitboxRange, int damageToPlayer, float sightRange, bool fleeOnAttacked, List<(string, int)> itemDropsIdAndCount, List<string> sceneIds) {
             NotifMessage = notifMessage;
+            MessageTitle = messageTitle;
             Message = message;
             SpawnId = spawnId;
             TotalAmountInHerd = totalAmountInHerd;
@@ -68,6 +70,7 @@ namespace HuntableHerds.Models {
 
             foreach (XElement element in huntingHerds.Descendants("Herd")) {
                 string notifMessage = element.Element("notifMessage").Value;
+                string messageTitle = element.Element("messageTitle").Value;
                 string message = element.Element("message").Value;
                 string spawnId = element.Element("spawnId").Value;
                 int totalAmountInHerd = (int)element.Element("totalAmountInHerd");
@@ -90,7 +93,7 @@ namespace HuntableHerds.Models {
                     foreach (XElement sceneId in sceneIdsElement.Descendants("sceneId"))
                         sceneIds.Add(sceneId.Value);
 
-                HerdBuildData buildData = new HerdBuildData(notifMessage, message, spawnId, totalAmountInHerd, isPassive, startingHealth, hitboxRange, damageToPlayer, sightRange, fleeOnAttacked, itemDrops, sceneIds);
+                HerdBuildData buildData = new HerdBuildData(notifMessage, messageTitle, message, spawnId, totalAmountInHerd, isPassive, startingHealth, hitboxRange, damageToPlayer, sightRange, fleeOnAttacked, itemDrops, sceneIds);
                 allHuntableAgentBuildDatas.Add(buildData);
             }
         }

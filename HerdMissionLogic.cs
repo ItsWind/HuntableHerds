@@ -12,6 +12,7 @@ using TaleWorlds.InputSystem;
 using HuntableHerds.AgentComponents;
 using HuntableHerds.Models;
 using TaleWorlds.Engine;
+using HuntableHerds.Extensions;
 
 namespace HuntableHerds {
     public class HerdMissionLogic : MissionLogic {
@@ -52,7 +53,7 @@ namespace HuntableHerds {
             if (animals.Count >= HerdBuildData.CurrentHerdBuildData.TotalAmountInHerd)
                 return;
 
-            Vec3 position = isRandomScene ? GetTrueRandomPosition(Agent.Main.Position, 20f, 500f) : GetRandomSpawnPosition(animalSpawnPositions);
+            Vec3 position = isRandomScene ? Mission.Current.GetTrueRandomPositionAroundPoint(Agent.Main.Position, 20f, 500f) : GetRandomSpawnPosition(animalSpawnPositions);
             SpawnAnimalToHunt(position);
         }
 
@@ -82,8 +83,8 @@ namespace HuntableHerds {
             MatrixFrame matrixFrame = MatrixFrame.Identity;
             CharacterObject playerCharacter = CharacterObject.PlayerCharacter;
             Vec3 centerPos = matrixFrame.origin;
-            //Mission.Scene.GetNavMeshCenterPosition(0, ref centerPos);
-            Vec3 playerSpawnPos = isRandomScene ? GetTrueRandomPosition(centerPos, 20f, 200f) : GetRandomSpawnPosition(playerSpawnPositions);
+            Mission.Scene.GetNavMeshCenterPosition(0, ref centerPos);
+            Vec3 playerSpawnPos = isRandomScene ? Mission.Current.GetTrueRandomPositionAroundPoint(centerPos, 20f, 200f) : GetRandomSpawnPosition(playerSpawnPositions);
             AgentBuildData agentBuildData = new AgentBuildData(playerCharacter).Team(base.Mission.PlayerTeam).InitialPosition(playerSpawnPos);
 
             Vec2 vec = matrixFrame.rotation.f.AsVec2;
@@ -122,13 +123,6 @@ namespace HuntableHerds {
             for (int i = 0; i < 3; i++) {
                 agent.AgentVisuals.GetSkeleton().TickAnimations(0.1f, agent.AgentVisuals.GetGlobalFrame(), true);
             }
-        }
-
-        private Vec3 GetTrueRandomPosition(Vec3 center, float minDistance, float maxDistance, bool nearFirst = false) {
-            Vec3 randomPos = base.Mission.GetRandomPositionAroundPoint(center, minDistance, maxDistance, nearFirst);
-            while (randomPos == center)
-                randomPos = base.Mission.GetRandomPositionAroundPoint(center, minDistance, maxDistance, nearFirst);
-            return randomPos;
         }
 
         private Vec3 GetRandomSpawnPosition(List<Vec3> spawnPositions) {

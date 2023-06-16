@@ -42,22 +42,22 @@ namespace HuntableHerds.AgentComponents {
             if (_attackTimer <= 1f)
                 SetMoveToPosition(mainAgent.Position.ToWorldPosition(), false, Agent.AIScriptedFrameFlags.NeverSlowDown);
 
-            if (_attackTimer == 0f && GetWithinAttackRangeOfPlayer())
+            if (_attackTimer == 0f && GetWithinAttackRangeOfPlayer(mainAgent))
                 AttackPlayer(mainAgent);
         }
 
         private void AttackPlayer(Agent mainAgent) {
             _attackTimer = 5f;
-            Vec3 nextPosition = GetTrueRandomPositionAroundOtherAgent(mainAgent, 10f, 50f, true);
+            Vec3 nextPosition = Agent.Mission.GetTrueRandomPositionAroundPoint(mainAgent.Position, 10f, 50f, true);
             SetMoveToPosition(nextPosition.ToWorldPosition(), false, Agent.AIScriptedFrameFlags.NeverSlowDown);
 
-            if (!Agent.CanSeeOtherAgent(Agent.Main, 0.3f))
+            if (!Agent.CanSeeOtherAgent(mainAgent, 0.3f))
                 return;
 
             Agent attacker = Agent;
-            Agent victim = Agent.Main.HasMount ? Agent.Main.MountAgent : Agent.Main;
+            Agent victim = mainAgent.HasMount ? mainAgent.MountAgent : mainAgent;
             // lazy block checking
-            bool isBlocked = !Agent.Main.HasMount && Input.IsKeyDown(InputKey.RightMouseButton) && victim.CanSeeOtherAgent(attacker, 1.25f);
+            bool isBlocked = !mainAgent.HasMount && Input.IsKeyDown(InputKey.RightMouseButton) && victim.CanSeeOtherAgent(attacker, 1.25f);
             int blockedDamageToPlayer = (int)Math.Round(HerdBuildData.CurrentHerdBuildData.DamageToPlayer * (isBlocked ? 0.25f : 1f));
 
             Blow blow = new Blow(attacker.Index);
@@ -78,8 +78,8 @@ namespace HuntableHerds.AgentComponents {
             victim.RegisterBlow(blow, attackCollisionDataForDebugPurpose);
         }
 
-        private bool GetWithinAttackRangeOfPlayer() {
-            if (Agent.Main.Position.Distance(this.Agent.Position) < HerdBuildData.CurrentHerdBuildData.HitboxRange)
+        private bool GetWithinAttackRangeOfPlayer(Agent mainAgent) {
+            if (mainAgent.Position.Distance(this.Agent.Position) < HerdBuildData.CurrentHerdBuildData.HitboxRange)
                 return true;
             return false;
         }
